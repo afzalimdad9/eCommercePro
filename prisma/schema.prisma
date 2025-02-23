@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+type Avatar {
+  public_id String
+  url       String
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+type ProductImage {
+  public_id String
+  url       String
+}
+
+type ProductReview {
+  user   String  @map("_id") @db.ObjectId
+  name   String
+  rating Int
+  comment String
+}
+
+type ShippingInfo {
+  address  String
+  city     String
+  state    String
+  country  String
+  pinCode  Int
+  phoneNo  Int
+}
+
+type OrderItem {
+  name      String
+  price     Float
+  quantity  Int
+  image     String
+  product   String @db.ObjectId
+}
+
+type PaymentInfo {
+  id     String
+  status String
+}
+
+model User {
+  id                  String   @id @default(cuid()) @map("_id")
+  name                String
+  email               String   @unique
+  password            String
+  avatar              Avatar
+  role                Role   @default(USER)
+  createdAt           DateTime @default(now())
+  resetPasswordToken  String?
+  resetPasswordExpire DateTime?
+}
+
+model Product {
+  id            String         @id @default(cuid()) @map("_id")
+  name          String
+  description   String
+  price         Float
+  ratings       Float         @default(0)
+  images        ProductImage[]
+  category      String
+  Stock         Int           @default(1)
+  numOfReviews  Int           @default(0)
+  reviews       ProductReview[]
+  user          String        @db.ObjectId
+  createdAt     DateTime      @default(now())
+  
+  @@map("products")
+}
+
+model Order {
+  id             String      @id @default(cuid()) @map("_id")
+  shippingInfo   ShippingInfo
+  orderItems     OrderItem[]
+  user           String      @db.ObjectId
+  paymentInfo    PaymentInfo
+  paidAt         DateTime
+  itemsPrice     Float       @default(0)
+  taxPrice       Float       @default(0)
+  shippingPrice  Float       @default(0)
+  totalPrice     Float       @default(0)
+  orderStatus    String      @default("Processing")
+  deliveredAt    DateTime?
+  createdAt      DateTime    @default(now())
+
+  @@map("orders")
+}
+
